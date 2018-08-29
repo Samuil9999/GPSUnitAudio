@@ -1,15 +1,11 @@
 import RPi.GPIO as GPIO
 import time
+from threading import Timer
 
 INPUT0 = 16
 INPUT1 = 20
 INPUT2 = 21
 
-def playWarning():
-	print("Warning!!!")
-	
-def playAudio(number):
-	print("Playing audio number " + str(number))
 
 def gpioCallback(channel):
 	if(channel == INPUT0):
@@ -29,7 +25,8 @@ class RInput:
 		self.pulselength = pulselength
 		self.counter = 0
 		self.lasttime = time.time()
-		#self.delta = 0
+		self.delta = 0
+		self.initTimer()
 		GPIO.setmode(GPIO.BCM)
 		GPIO.setup(number, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 		GPIO.add_event_detect(number, GPIO.BOTH, callback=gpioCallback, bouncetime=100)
@@ -37,26 +34,29 @@ class RInput:
 	
 	def processInterrupt(self):
 		self.delta = time.time() - self.lasttime
-		self.counter += 1
-
-		print("time.time() - lasttime:{}".format(time.time() - self.lasttime))
-
-		if self.delta > self.pulselength:
-			print("Total number of pulses:{}".format(self.counter))
-			self.counter = 0
-
-		self.lasttime = time.time()
-		
-class RInput0(RInput):
-	def processInterrupt(self):
-		self.delta = time.time() - self.lasttime
-		print("time.time() - lasttime:{}".format(time.time()-self.lasttime))
-		if self.delta > self.pulselength:
-			print("Total number of pulses:{}".format(self.counter + 1))
-			self.counter = 0
-		else:
+		# if this is a start of pulse, then increment
+		if GPIO.input(self.number) == False:
 			self.counter += 1
-		self.lasttime = time.time()
+			print("time.time() - lasttime:%s, counter%s" % \
+				(time.time() - self.lasttime, self.counter))
+		elif GPIO.input(self.number) == True:
+			self.timer.cancel()
+			self.initTimer()
+			self.timer.start()
+		#if self.delta > self.pulselength:
+			#print("Total number of pulses:{}".format(self.counter))
+			#self.counter = 0
+		#self.lasttime = time.time()
+
+	def initTimer(self):
+		self.timer = Timer(self.pulselength + 0.1, self.playAudio)
+
+	def playAudio(self):
+		if(self.number == INPUT0):
+			print("Warning!!!")
+		else:
+			print("Playing audio number " + str(self.number))
+		
 	
 input0 = RInput(INPUT0, 2.5);
 
