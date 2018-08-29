@@ -15,9 +15,11 @@ def gpioCallback(channel):
 	elif (channel == INPUT1):
 		global input1
 		print("channel:" + str(channel) + ", counter:" + str(input1.counter))
+		input1.processInterrupt()
 	elif (channel == INPUT2):
 		global input2
 		print("channel:" + str(channel) + ", counter:" + str(input2.counter))
+		input2.processInterrupt()
 		
 class RInput:
 	def __init__(self, number, pulselength):
@@ -43,10 +45,6 @@ class RInput:
 			self.timer.cancel()
 			self.initTimer()
 			self.timer.start()
-		#if self.delta > self.pulselength:
-			#print("Total number of pulses:{}".format(self.counter))
-			#self.counter = 0
-		#self.lasttime = time.time()
 
 	def initTimer(self):
 		self.timer = Timer(self.pulselength + 0.1, self.playAudio)
@@ -54,11 +52,23 @@ class RInput:
 	def playAudio(self):
 		if(self.number == INPUT0):
 			print("Warning!!!")
-		else:
-			print("Playing audio number " + str(self.number))
-		
+		elif(self.number == INPUT1):
+			if self.counter >=1 and self.counter <=15:
+				print("Playing audio number " + str(self.counter))
+			else:
+				print("Cannot play audio number " + str(self.counter) + ". Out of range.")
+		elif(self.number == INPUT2):
+			if self.counter >=1 and self.counter <=15:
+				print("Playing audio number " + str(self.counter + 15) + " at INPUT1")
+			else:
+				print("Cannot play audio number " + str(self.counter + 15) \
+				 + ". Pulse number (" + str(self.counter) + ") at INPUT2 " \
+				 + " is out of range.")
+		self.counter = 0
 	
 input0 = RInput(INPUT0, 2.5);
+input1 = RInput(INPUT1, 2.5);
+input2 = RInput(INPUT2, 2.5);
 
 while True:
 	time.sleep(1)
