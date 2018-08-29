@@ -5,8 +5,6 @@ INPUT0 = 16
 INPUT1 = 20
 INPUT2 = 21
 
-
-
 #counter_0 = 0
 #lasttime_0 = time.time()
 
@@ -20,7 +18,13 @@ def gpioCallback(channel):
 	if(channel == INPUT0):
 		global input0
 		print("channel:" + str(channel) + ", counter:" + str(input0.counter))
-		input0.counter += 1
+		input0.processInterrupt()
+	elif (channel == INPUT1):
+		global input1
+		print("channel:" + str(channel) + ", counter:" + str(input1.counter))
+	elif (channel == INPUT2):
+		global input2
+		print("channel:" + str(channel) + ", counter:" + str(input2.counter))
 		
 class RInput:
 	def __init__(self, number):
@@ -31,7 +35,11 @@ class RInput:
 		GPIO.setup(number, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 		GPIO.add_event_detect(number, GPIO.FALLING, callback=gpioCallback, bouncetime=200)
 		print("RInput:" + str(number) + " created.")
-
+	
+	def processInterrupt(self):
+		print("time.time()-lasttime:{}".format(self.lasttime-time.time()))
+		self.lasttime = time.time()
+		self.counter += 1
 	
 input0 = RInput(INPUT0);
 
